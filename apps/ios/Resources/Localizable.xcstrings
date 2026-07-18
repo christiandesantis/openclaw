@@ -69497,6 +69497,142 @@
         }
       }
     },
+    "Fork from Here": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fork from Here"
+          }
+        },
+        "zh-CN": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "ja-JP": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Fork from Here"
+          }
+        }
+      }
+    },
     "Full": {
       "localizations": {
         "en": {
@@ -140621,6 +140757,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "Granskar"
+          }
+        }
+      }
+    },
+    "Rewind to Here": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rewind to Here"
+          }
+        },
+        "zh-CN": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "zh-TW": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "ja-JP": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "ar": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
+          }
+        },
+        "sv": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Rewind to Here"
           }
         }
       }
