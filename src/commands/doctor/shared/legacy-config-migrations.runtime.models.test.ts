@@ -2,7 +2,151 @@
 
 import { expectDefined } from "@openclaw/normalization-core";
 import { describe, it, expect } from "vitest";
+import { createModelVisibilityPolicy } from "../../../agents/model-visibility-policy.js";
+import type { OpenClawConfig } from "../../../config/types.js";
 import { LEGACY_CONFIG_MIGRATIONS_RUNTIME_MODELS } from "./legacy-config-migrations.runtime.models.js";
+
+describe("explicit model allow policy migration", () => {
+  const migration = LEGACY_CONFIG_MIGRATIONS_RUNTIME_MODELS.find(
+    (entry) => entry.id === "agents.defaults.models->agents.defaults.modelPolicy.allow",
+  );
+
+  it("preserves a legacy restriction after an unrelated new-version write", () => {
+    const raw = {
+      meta: { lastTouchedVersion: "2026.7.2" },
+      agents: {
+        defaults: {
+          models: {
+            "openai/*": {},
+            "anthropic/claude-sonnet-4-6": { alias: "sonnet" },
+          },
+        },
+      },
+    };
+    const changes: string[] = [];
+
+    expect(migration?.legacyRules?.[0]?.match?.(raw.agents.defaults.models, raw)).toBe(true);
+    migration?.apply(raw, changes);
+
+    expect(raw.agents.defaults).toMatchObject({
+      modelPolicy: {
+        allow: ["openai/*", "anthropic/claude-sonnet-4-6"],
+      },
+    });
+    expect(raw).toMatchObject({
+      meta: { migrations: { modelPolicyAllowlist: true } },
+    });
+    expect(changes).toHaveLength(1);
+    expect(migration?.legacyRules?.[0]?.match?.(raw.agents.defaults.models, raw)).toBe(false);
+
+    const migratedDefaults = raw.agents.defaults as typeof raw.agents.defaults & {
+      modelPolicy: { allow: string[] };
+    };
+    migratedDefaults.modelPolicy.allow = ["google/*"];
+    const secondChanges: string[] = [];
+    migration?.apply(raw, secondChanges);
+    expect(migratedDefaults.modelPolicy.allow).toEqual(["google/*"]);
+    expect(secondChanges).toEqual([]);
+  });
+
+  it("leaves an explicit allow list untouched", () => {
+    const raw = {
+      agents: {
+        defaults: {
+          models: { "openai/gpt-5.5": {} },
+          modelPolicy: { allow: ["anthropic/*"] },
+        },
+      },
+    };
+    const changes: string[] = [];
+
+    migration?.apply(raw, changes);
+
+    expect(raw.agents.defaults.modelPolicy.allow).toEqual(["anthropic/*"]);
+    expect(changes).toEqual([]);
+  });
+
+  it("migrates only the default restriction and keeps per-agent metadata policy-free", () => {
+    const raw = {
+      agents: {
+        defaults: { models: { "openai/*": {} } },
+        list: [
+          {
+            id: "worker",
+            models: { "anthropic/claude-sonnet-4-6": { alias: "sonnet" } },
+          },
+        ],
+      },
+    };
+    const changes: string[] = [];
+    const createPolicy = (cfg: OpenClawConfig) =>
+      createModelVisibilityPolicy({
+        cfg,
+        catalog: [
+          { provider: "anthropic", id: "claude-sonnet-4-6", name: "Claude Sonnet" },
+          { provider: "openai", id: "gpt-5.5", name: "GPT 5.5" },
+        ],
+        defaultProvider: "openai",
+        defaultModel: "gpt-5.5",
+        agentId: "worker",
+      });
+    const before = createPolicy(raw);
+
+    migration?.apply(raw, changes);
+
+    expect(raw.agents.defaults).toMatchObject({ modelPolicy: { allow: ["openai/*"] } });
+    expect(raw.agents.list[0]).not.toHaveProperty("modelPolicy");
+    expect(raw).toMatchObject({
+      meta: { migrations: { modelPolicyAllowlist: true } },
+    });
+    expect(changes).toHaveLength(1);
+    const after = createPolicy(raw);
+    expect(after.exactModelRefs).toEqual(before.exactModelRefs);
+    expect([...after.providerWildcards]).toEqual([...before.providerWildcards]);
+    expect(after.allowAny).toBe(before.allowAny);
+    expect(after.allows({ provider: "openai", model: "gpt-5.5" })).toBe(
+      before.allows({ provider: "openai", model: "gpt-5.5" }),
+    );
+  });
+
+  it("ignores a per-agent model map when no legacy default restriction exists", () => {
+    const raw = {
+      agents: {
+        list: [
+          {
+            id: "worker",
+            models: { "anthropic/claude-sonnet-4-6": { alias: "sonnet" } },
+          },
+        ],
+      },
+    };
+    const changes: string[] = [];
+
+    expect(migration?.legacyRules).toHaveLength(1);
+    migration?.apply(raw, changes);
+
+    expect(raw.agents.list[0]).not.toHaveProperty("modelPolicy");
+    expect(raw).not.toHaveProperty("meta");
+    expect(changes).toEqual([]);
+  });
+
+  it("marks a blank-only legacy map migrated without stamping an allow list", () => {
+    const raw = { agents: { defaults: { models: { " ": {} } } } };
+    const changes: string[] = [];
+
+    migration?.apply(raw, changes);
+
+    expect(raw.agents.defaults).not.toHaveProperty("modelPolicy");
+    expect(raw).toMatchObject({
+      meta: { migrations: { modelPolicyAllowlist: true } },
+    });
+    expect(changes).toHaveLength(1);
+
+    const secondChanges: string[] = [];
+    migration?.apply(raw, secondChanges);
+    expect(secondChanges).toEqual([]);
+  });
+});
 
 describe("stale contextWindow migration", () => {
   const migration = LEGACY_CONFIG_MIGRATIONS_RUNTIME_MODELS.find(

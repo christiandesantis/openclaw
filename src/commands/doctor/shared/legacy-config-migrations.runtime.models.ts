@@ -10,6 +10,11 @@ import {
   type LegacyConfigMigrationSpec,
   type LegacyConfigRule,
 } from "../../../config/legacy.shared.js";
+import {
+  computeModelPolicyAllowlist,
+  hasModelPolicyAllowlistMigrationMarker,
+  MODEL_POLICY_ALLOWLIST_MIGRATION_MARKER,
+} from "../../../config/model-policy-allowlist-migration.js";
 import { isModelThinkingFormat, type ModelDefinitionConfig } from "../../../config/types.models.js";
 import { isBlockedObjectKey } from "../../../infra/prototype-keys.js";
 import {
@@ -828,13 +833,16 @@ const MODEL_REF_ARRAY_KEYS = new Set([
   "imageModelFallbacks",
 ]);
 const MODEL_REF_MAP_KEYS = new Set(["models"]);
-
 function pathKey(path: string): string {
   return path.slice(path.lastIndexOf(".") + 1);
 }
 
 function isChannelModelOverridePath(path: string): boolean {
   return path.includes(".modelByChannel.");
+}
+
+function isModelPolicyAllowPath(path: string): boolean {
+  return path.endsWith(".modelPolicy.allow");
 }
 
 function scanKnownModelRefs(value: unknown, key?: string, path = ""): boolean {
@@ -847,7 +855,9 @@ function scanKnownModelRefs(value: unknown, key?: string, path = ""): boolean {
   }
   if (Array.isArray(value)) {
     return value.some((entry, index) =>
-      typeof entry === "string" && key && MODEL_REF_ARRAY_KEYS.has(key)
+      typeof entry === "string" &&
+      key &&
+      (MODEL_REF_ARRAY_KEYS.has(key) || isModelPolicyAllowPath(path))
         ? Boolean(upgradeRetiredModelRef(entry))
         : scanKnownModelRefs(entry, undefined, `${path}.${index}`),
     );
@@ -861,6 +871,48 @@ function scanKnownModelRefs(value: unknown, key?: string, path = ""): boolean {
   }
   return Object.entries(record).some(([childKey, child]) =>
     scanKnownModelRefs(child, childKey, `${path}.${childKey}`),
+  );
+}
+
+function collectLegacyDefaultModelAllowRefs(raw: Record<string, unknown>): string[] | null {
+  // Marker seeding at the config write boundary ships atomically with metadata-only
+  // model maps. Therefore an unmarked map is legacy even if a general write version advanced.
+  const defaults = getRecord(getRecord(raw.agents)?.defaults);
+  return computeModelPolicyAllowlist({
+    root: raw,
+    defaults,
+  });
+}
+
+function migrateExplicitDefaultModelAllowPolicy(
+  raw: Record<string, unknown>,
+  changes: string[],
+): void {
+  if (hasModelPolicyAllowlistMigrationMarker(raw)) {
+    return;
+  }
+  const defaults = getRecord(getRecord(raw.agents)?.defaults);
+  const defaultModelPolicy = getRecord(defaults?.modelPolicy);
+  const defaultNeedsEvaluation =
+    Boolean(getRecord(defaults?.models)) &&
+    !(defaultModelPolicy && Object.hasOwn(defaultModelPolicy, "allow"));
+  if (!defaultNeedsEvaluation) {
+    return;
+  }
+  const defaultAllow = collectLegacyDefaultModelAllowRefs(raw);
+  if (defaultAllow) {
+    const mutableDefaults = ensureRecord(ensureRecord(raw, "agents"), "defaults");
+    const mutableModelPolicy = ensureRecord(mutableDefaults, "modelPolicy");
+    // The policy builder still retains configured defaults/fallbacks, so copying the
+    // original keys reproduces the legacy effective set, including wildcard expansion.
+    mutableModelPolicy.allow = defaultAllow;
+  }
+  const migrations = ensureRecord(ensureRecord(raw, "meta"), "migrations");
+  migrations[MODEL_POLICY_ALLOWLIST_MIGRATION_MARKER] = true;
+  changes.push(
+    defaultAllow
+      ? "Copied the legacy default model map to agents.defaults.modelPolicy.allow."
+      : "Recorded the legacy default model map as unrestricted without creating modelPolicy.allow.",
   );
 }
 
@@ -1014,7 +1066,10 @@ function rewriteKnownModelRefs(
   if (Array.isArray(value)) {
     let changed = false;
     const next = value.map((entry, index) => {
-      if (typeof entry === "string" && MODEL_REF_ARRAY_KEYS.has(key)) {
+      if (
+        typeof entry === "string" &&
+        (MODEL_REF_ARRAY_KEYS.has(key) || isModelPolicyAllowPath(path))
+      ) {
         const rewritten = rewriteModelRefString(entry, `${path}.${index}`, changes);
         changed ||= rewritten !== entry;
         return rewritten;
@@ -1643,6 +1698,19 @@ export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_MODELS: LegacyConfigMigrationSpec[
         setRecordEntry(raw, key, value);
       }
     },
+  }),
+  defineLegacyConfigMigration({
+    id: "agents.defaults.models->agents.defaults.modelPolicy.allow",
+    describe: "Make the legacy model override restriction explicit",
+    legacyRules: [
+      {
+        path: ["agents", "defaults", "models"],
+        message:
+          'agents.defaults.models no longer restricts model overrides; run "openclaw doctor --fix" to preserve the previous restriction in agents.defaults.modelPolicy.allow.',
+        match: (_value, root) => collectLegacyDefaultModelAllowRefs(root) !== null,
+      },
+    ],
+    apply: migrateExplicitDefaultModelAllowPolicy,
   }),
   defineLegacyConfigMigration({
     id: "agents.defaults.models.vllm.params.qwenThinkingFormat->models.providers.vllm.models.compat.thinkingFormat",
