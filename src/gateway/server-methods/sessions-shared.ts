@@ -3,7 +3,9 @@ import { normalizeOptionalString } from "@openclaw/normalization-core/string-coe
 import { GATEWAY_CLIENT_IDS } from "../../../packages/gateway-protocol/src/client-info.js";
 import {
   ErrorCodes,
+  GatewayErrorDetailCodes,
   errorShape,
+  type ClientModeForbiddenErrorDetails,
   type SessionOperationEvent,
   type SessionPlacement,
   type SessionsPatchParams,
@@ -298,12 +300,19 @@ export function rejectWebchatSessionMutation(params: {
   if (params.client.connect.client.id === GATEWAY_CLIENT_IDS.CONTROL_UI) {
     return false;
   }
+  const details = {
+    code: GatewayErrorDetailCodes.CLIENT_MODE_FORBIDDEN,
+    clientId: params.client.connect.client.id,
+    clientMode: params.client.connect.client.mode,
+    action: params.action,
+  } satisfies ClientModeForbiddenErrorDetails;
   params.respond(
     false,
     undefined,
     errorShape(
-      ErrorCodes.INVALID_REQUEST,
+      ErrorCodes.FORBIDDEN,
       `webchat clients cannot ${params.action} sessions; use chat.send for session-scoped updates`,
+      { details },
     ),
   );
   return true;

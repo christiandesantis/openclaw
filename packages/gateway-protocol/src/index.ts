@@ -13,6 +13,11 @@ export type { ProtocolValidator } from "./protocol-validator.js";
 export * from "./schema/worker-inference.js";
 export * from "./schema/skill-history.js";
 export * from "./schema/ui-command.js";
+export type {
+  ClientModeForbiddenErrorDetails,
+  GatewayErrorDetails,
+  MissingScopeErrorDetails,
+} from "./schema/error-codes.js";
 export * from "./migration-api.js";
 export type * from "./public-session-catalog.js";
 import {
@@ -229,6 +234,11 @@ import {
   PluginsUninstallParamsSchema,
   PluginsUninstallResultSchema,
   ErrorCodes,
+  buildMissingScopeErrorDetails,
+  GatewayErrorDetailCodes,
+  GatewayErrorDetailsSchema,
+  MissingScopeErrorDetailsSchema,
+  ClientModeForbiddenErrorDetailsSchema,
   EnvironmentSummarySchema,
   EnvironmentsCreateParamsSchema,
   EnvironmentsCreateResultSchema,
@@ -284,6 +294,7 @@ import {
   ErrorShapeSchema,
   EventFrameSchema,
   errorShape,
+  missingScopeErrorShape,
   GatewayFrameSchema,
   GATEWAY_SERVER_CAPS,
   HelloOkSchema,
@@ -935,6 +946,9 @@ export {
   PresenceEntrySchema,
   SnapshotSchema,
   ErrorShapeSchema,
+  GatewayErrorDetailsSchema,
+  MissingScopeErrorDetailsSchema,
+  ClientModeForbiddenErrorDetailsSchema,
   WorkerAdmissionFailureReasonSchema,
   WorkerAdmissionHandshakeSchema,
   WorkerAdmissionResponseFrameSchema,
@@ -1390,7 +1404,10 @@ export {
   MIN_PROBE_PROTOCOL_VERSION,
   PROTOCOL_VERSION,
   ErrorCodes,
+  buildMissingScopeErrorDetails,
+  GatewayErrorDetailCodes,
   errorShape,
+  missingScopeErrorShape,
 };
 
 // Type exports mirror the schema exports for downstream TypeScript consumers.

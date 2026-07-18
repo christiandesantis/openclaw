@@ -109,7 +109,16 @@ test("webchat clients cannot mutate sessions", async () => {
     label: "should-fail",
   });
   expect(patched.ok).toBe(false);
-  expect(patched.error?.message ?? "").toMatch(/webchat clients cannot patch sessions/i);
+  expect(patched.error).toEqual({
+    code: "FORBIDDEN",
+    message: "webchat clients cannot patch sessions; use chat.send for session-scoped updates",
+    details: {
+      code: "CLIENT_MODE_FORBIDDEN",
+      clientId: GATEWAY_CLIENT_IDS.WEBCHAT_UI,
+      clientMode: GATEWAY_CLIENT_MODES.UI,
+      action: "patch",
+    },
+  });
 
   const deleted = await rpcReq(ws, "sessions.delete", {
     key: "agent:main:discord:group:dev",

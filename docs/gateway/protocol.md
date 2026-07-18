@@ -30,6 +30,24 @@ Frame shapes:
 - Response: `{type:"res", id, ok, payload|error}`
 - Event: `{type:"event", event, payload, seq?, stateVersion?}`
 
+Response errors use `{ code, message, details?, retryable?, retryAfterMs? }`.
+Clients should branch on `code` and `details.code`; `message` remains human-readable
+and can change except where a compatibility note says otherwise. Method-level
+authorization failures use top-level `code: "FORBIDDEN"` with one of these
+structured detail shapes:
+
+- Missing scope: `{ code: "MISSING_SCOPE", missingScope, requiredScopes }`.
+  `requiredScopes` is the complete known scope set for the requested operation.
+  The legacy `missing scope: <scope>` message is retained for older clients.
+- Client-mode restriction: `{ code: "CLIENT_MODE_FORBIDDEN", clientId,
+clientMode, action }`. This distinguishes a request blocked by the connected
+  client mode from invalid method parameters.
+
+The schemas are exported as `GatewayErrorDetailsSchema`,
+`MissingScopeErrorDetailsSchema`, and `ClientModeForbiddenErrorDetailsSchema`
+from `@openclaw/gateway-protocol/schema`. HTTP scope failures mirror the
+`MISSING_SCOPE` object under `error.details` and use HTTP status `403`.
+
 Side-effecting methods require idempotency keys (see schema).
 
 ## Handshake
